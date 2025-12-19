@@ -1,4 +1,6 @@
 import 'package:employee_management/controller/user_list_notifier.dart';
+import 'package:employee_management/model/user_model.dart';
+import 'package:employee_management/repository/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:provider/provider.dart';
@@ -33,259 +35,525 @@ class HomePage extends HookWidget {
       return date;
     }
 
+    final userStream = UserRepository().fetchUser();
+    // UserModel allData;
+
     return Scaffold(
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: userList.length,
-              itemBuilder: (context, index) {
-                final data = userList[index];
-                final docId = data.docId;
-                return Container(
-                  margin: EdgeInsets.all(8),
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 0.5, color: Colors.black),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 40),
-                      Column(
+            child: StreamBuilder(
+              stream: userStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text("Something went wrong"));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final data = snapshot.data!.docs;
+
+                return ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    final userDetails = UserModel.fromFirestore(data[index]);
+                    return Container(
+                      height: 200,
+                      margin: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 0.5, color: Colors.black),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Text(data.name),
-                          Text(data.designation),
-                          Text(data.employeeId),
-                        ],
-                      ),
-                      Expanded(
-                        child: IconButton(
-                          onPressed: () {
-                            userListProvider.deleteUser(docId);
-                          },
-                          icon: Icon(Icons.delete),
-                        ),
-                      ),
-                      Expanded(
-                        child: IconButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              isScrollControlled: true,
-                              context: context,
-                              builder: (context) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: MediaQuery.of(
-                                      context,
-                                    ).viewInsets.bottom,
-                                  ),
-                                  child: Container(
-                                    decoration: BoxDecoration(),
-                                    height:
-                                        MediaQuery.of(context).size.height *
-                                        0.4,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                              255,
-                                              226,
-                                              223,
-                                              223,
+                          Text(
+                            userDetails.name,
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          Text(
+                            userDetails.designation,
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          Text(
+                            userDetails.employeeId,
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context,
+                                builder: (context) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(
+                                        context,
+                                      ).viewInsets.bottom,
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(),
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                          0.4,
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            border: Border.all(
-                                              width: 0.5,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            keyboardType:
-                                                TextInputType.visiblePassword,
-                                            controller: nameCntrllr,
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              hintText: "Name",
-                                              contentPadding: EdgeInsets.only(
-                                                left: 8,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                              255,
-                                              226,
-                                              223,
-                                              223,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            border: Border.all(
-                                              width: 0.5,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            keyboardType:
-                                                TextInputType.visiblePassword,
-                                            controller: newEmailCntrllr,
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              hintText: "Email",
-                                              contentPadding: EdgeInsets.only(
-                                                left: 8,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                              255,
-                                              226,
-                                              223,
-                                              223,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            border: Border.all(
-                                              width: 0.5,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            keyboardType:
-                                                TextInputType.visiblePassword,
-                                            controller: designationCntrllr,
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              hintText: "designation",
-                                              contentPadding: EdgeInsets.only(
-                                                left: 8,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                              255,
-                                              226,
-                                              223,
-                                              223,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            border: Border.all(
-                                              width: 0.5,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            keyboardType: TextInputType.number,
-                                            controller: employeeIdCntrllr,
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              hintText: "Employee id",
-                                              contentPadding: EdgeInsets.only(
-                                                left: 8,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            final name = nameCntrllr.text
-                                                .trim();
-                                            final email = newEmailCntrllr.text
-                                                .trim();
-                                            final designation =
-                                                designationCntrllr.text.trim();
-                                            final employeeId = employeeIdCntrllr
-                                                .text
-                                                .trim();
-                                            userListProvider.updateUser(
-                                              name == "" ? null : name,
-                                              email == "" ? null : email,
-                                              designation == ""
-                                                  ? null
-                                                  : designation,
-                                              employeeId == ""
-                                                  ? null
-                                                  : employeeId,
-                                              docId,
-                                            );
-                                            nameCntrllr.clear();
-                                            newEmailCntrllr.clear();
-                                            designationCntrllr.clear();
-                                            employeeIdCntrllr.clear();
-                                            Navigator.pop(context);
-                                          },
-                                          child: Container(
-                                            height: 50,
-                                            width: 150,
                                             decoration: BoxDecoration(
+                                              color: const Color.fromARGB(
+                                                255,
+                                                226,
+                                                223,
+                                                223,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               border: Border.all(
                                                 width: 0.5,
                                                 color: Colors.black,
                                               ),
-                                              color: Colors.black,
                                             ),
-                                            child: Center(
-                                              child: Text(
-                                                "Submit",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
+                                            child: TextField(
+                                              keyboardType:
+                                                  TextInputType.visiblePassword,
+                                              controller: nameCntrllr,
+                                              decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: "Name",
+                                                contentPadding: EdgeInsets.only(
+                                                  left: 8,
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        SizedBox(height: 70),
-                                      ],
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color.fromARGB(
+                                                255,
+                                                226,
+                                                223,
+                                                223,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              border: Border.all(
+                                                width: 0.5,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            child: TextField(
+                                              keyboardType:
+                                                  TextInputType.visiblePassword,
+                                              controller: newEmailCntrllr,
+                                              decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: "Email",
+                                                contentPadding: EdgeInsets.only(
+                                                  left: 8,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color.fromARGB(
+                                                255,
+                                                226,
+                                                223,
+                                                223,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              border: Border.all(
+                                                width: 0.5,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            child: TextField(
+                                              keyboardType:
+                                                  TextInputType.visiblePassword,
+                                              controller: designationCntrllr,
+                                              decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: "designation",
+                                                contentPadding: EdgeInsets.only(
+                                                  left: 8,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color.fromARGB(
+                                                255,
+                                                226,
+                                                223,
+                                                223,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              border: Border.all(
+                                                width: 0.5,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            child: TextField(
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              controller: employeeIdCntrllr,
+                                              decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: "Employee id",
+                                                contentPadding: EdgeInsets.only(
+                                                  left: 8,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              final name = nameCntrllr.text
+                                                  .trim();
+                                              final email = newEmailCntrllr.text
+                                                  .trim();
+                                              final designation =
+                                                  designationCntrllr.text
+                                                      .trim();
+                                              final employeeId =
+                                                  employeeIdCntrllr.text.trim();
+                                              userListProvider.updateUser(
+                                                name == "" ? null : name,
+                                                email == "" ? null : email,
+                                                designation == ""
+                                                    ? null
+                                                    : designation,
+                                                employeeId == ""
+                                                    ? null
+                                                    : employeeId,
+                                                userDetails.docId,
+                                              );
+                                              userListProvider
+                                                      .val![index]
+                                                      .name =
+                                                  name;
+                                              nameCntrllr.clear();
+                                              newEmailCntrllr.clear();
+                                              designationCntrllr.clear();
+                                              employeeIdCntrllr.clear();
+                                              Navigator.pop(context);
+                                            },
+                                            child: Container(
+                                              height: 50,
+                                              width: 150,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  width: 0.5,
+                                                  color: Colors.black,
+                                                ),
+                                                color: Colors.black,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  "Submit",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 70),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          icon: Icon(Icons.edit),
-                        ),
+                                  );
+                                },
+                              );
+                            },
+                            icon: Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              userListProvider.deleteUser(userDetails.docId);
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),
+            // child: ListView.builder(
+            //   itemCount: userList.length,
+            //   itemBuilder: (context, index) {
+            //     final data = userList[index];
+            //     final docId = data.docId;
+            //     return Container(
+            //       margin: EdgeInsets.all(8),
+            //       height: 100,
+            //       decoration: BoxDecoration(
+            //         border: Border.all(width: 0.5, color: Colors.black),
+            //         borderRadius: BorderRadius.circular(10),
+            //       ),
+            //       child: Row(
+            //         children: [
+            //           SizedBox(width: 40),
+            //           Column(
+            //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //             children: [
+            //               Text(data.name),
+            //               Text(data.designation),
+            //               Text(data.employeeId),
+            //             ],
+            //           ),
+            //           Expanded(
+            //             child: IconButton(
+            //               onPressed: () {
+            //                 userListProvider.deleteUser(docId);
+            //               },
+            //               icon: Icon(Icons.delete),
+            //             ),
+            //           ),
+            //           Expanded(
+            //             child: IconButton(
+            //               onPressed: () {
+            //                 showModalBottomSheet(
+            //                   isScrollControlled: true,
+            //                   context: context,
+            //                   builder: (context) {
+            //                     return Padding(
+            //                       padding: EdgeInsets.only(
+            //                         bottom: MediaQuery.of(
+            //                           context,
+            //                         ).viewInsets.bottom,
+            //                       ),
+            //                       child: Container(
+            //                         decoration: BoxDecoration(),
+            //                         height:
+            //                             MediaQuery.of(context).size.height *
+            //                             0.4,
+            //                         child: Column(
+            //                           children: [
+            //                             Container(
+            //                               margin: EdgeInsets.symmetric(
+            //                                 horizontal: 16,
+            //                                 vertical: 16,
+            //                               ),
+            //                               decoration: BoxDecoration(
+            //                                 color: const Color.fromARGB(
+            //                                   255,
+            //                                   226,
+            //                                   223,
+            //                                   223,
+            //                                 ),
+            //                                 borderRadius: BorderRadius.circular(
+            //                                   10,
+            //                                 ),
+            //                                 border: Border.all(
+            //                                   width: 0.5,
+            //                                   color: Colors.black,
+            //                                 ),
+            //                               ),
+            //                               child: TextField(
+            //                                 keyboardType:
+            //                                     TextInputType.visiblePassword,
+            //                                 controller: nameCntrllr,
+            //                                 decoration: InputDecoration(
+            //                                   border: InputBorder.none,
+            //                                   hintText: "Name",
+            //                                   contentPadding: EdgeInsets.only(
+            //                                     left: 8,
+            //                                   ),
+            //                                 ),
+            //                               ),
+            //                             ),
+            //                             Container(
+            //                               margin: EdgeInsets.symmetric(
+            //                                 horizontal: 16,
+            //                                 vertical: 16,
+            //                               ),
+            //                               decoration: BoxDecoration(
+            //                                 color: const Color.fromARGB(
+            //                                   255,
+            //                                   226,
+            //                                   223,
+            //                                   223,
+            //                                 ),
+            //                                 borderRadius: BorderRadius.circular(
+            //                                   10,
+            //                                 ),
+            //                                 border: Border.all(
+            //                                   width: 0.5,
+            //                                   color: Colors.black,
+            //                                 ),
+            //                               ),
+            //                               child: TextField(
+            //                                 keyboardType:
+            //                                     TextInputType.visiblePassword,
+            //                                 controller: newEmailCntrllr,
+            //                                 decoration: InputDecoration(
+            //                                   border: InputBorder.none,
+            //                                   hintText: "Email",
+            //                                   contentPadding: EdgeInsets.only(
+            //                                     left: 8,
+            //                                   ),
+            //                                 ),
+            //                               ),
+            //                             ),
+            //                             Container(
+            //                               margin: EdgeInsets.symmetric(
+            //                                 horizontal: 16,
+            //                                 vertical: 16,
+            //                               ),
+            //                               decoration: BoxDecoration(
+            //                                 color: const Color.fromARGB(
+            //                                   255,
+            //                                   226,
+            //                                   223,
+            //                                   223,
+            //                                 ),
+            //                                 borderRadius: BorderRadius.circular(
+            //                                   10,
+            //                                 ),
+            //                                 border: Border.all(
+            //                                   width: 0.5,
+            //                                   color: Colors.black,
+            //                                 ),
+            //                               ),
+            //                               child: TextField(
+            //                                 keyboardType:
+            //                                     TextInputType.visiblePassword,
+            //                                 controller: designationCntrllr,
+            //                                 decoration: InputDecoration(
+            //                                   border: InputBorder.none,
+            //                                   hintText: "designation",
+            //                                   contentPadding: EdgeInsets.only(
+            //                                     left: 8,
+            //                                   ),
+            //                                 ),
+            //                               ),
+            //                             ),
+            //                             Container(
+            //                               margin: EdgeInsets.symmetric(
+            //                                 horizontal: 16,
+            //                                 vertical: 16,
+            //                               ),
+            //                               decoration: BoxDecoration(
+            //                                 color: const Color.fromARGB(
+            //                                   255,
+            //                                   226,
+            //                                   223,
+            //                                   223,
+            //                                 ),
+            //                                 borderRadius: BorderRadius.circular(
+            //                                   10,
+            //                                 ),
+            //                                 border: Border.all(
+            //                                   width: 0.5,
+            //                                   color: Colors.black,
+            //                                 ),
+            //                               ),
+            //                               child: TextField(
+            //                                 keyboardType: TextInputType.number,
+            //                                 controller: employeeIdCntrllr,
+            //                                 decoration: InputDecoration(
+            //                                   border: InputBorder.none,
+            //                                   hintText: "Employee id",
+            //                                   contentPadding: EdgeInsets.only(
+            //                                     left: 8,
+            //                                   ),
+            //                                 ),
+            //                               ),
+            //                             ),
+            //                             GestureDetector(
+            //                               onTap: () {
+            //                                 final name = nameCntrllr.text
+            //                                     .trim();
+            //                                 final email = newEmailCntrllr.text
+            //                                     .trim();
+            //                                 final designation =
+            //                                     designationCntrllr.text.trim();
+            //                                 final employeeId = employeeIdCntrllr
+            //                                     .text
+            //                                     .trim();
+            //                                 userListProvider.updateUser(
+            //                                   name == "" ? null : name,
+            //                                   email == "" ? null : email,
+            //                                   designation == ""
+            //                                       ? null
+            //                                       : designation,
+            //                                   employeeId == ""
+            //                                       ? null
+            //                                       : employeeId,
+            //                                   docId,
+            //                                 );
+            //                                 nameCntrllr.clear();
+            //                                 newEmailCntrllr.clear();
+            //                                 designationCntrllr.clear();
+            //                                 employeeIdCntrllr.clear();
+            //                                 Navigator.pop(context);
+            //                               },
+            //                               child: Container(
+            //                                 height: 50,
+            //                                 width: 150,
+            //                                 decoration: BoxDecoration(
+            //                                   borderRadius:
+            //                                       BorderRadius.circular(10),
+            //                                   border: Border.all(
+            //                                     width: 0.5,
+            //                                     color: Colors.black,
+            //                                   ),
+            //                                   color: Colors.black,
+            //                                 ),
+            //                                 child: Center(
+            //                                   child: Text(
+            //                                     "Submit",
+            //                                     style: TextStyle(
+            //                                       color: Colors.white,
+            //                                       fontSize: 16,
+            //                                     ),
+            //                                   ),
+            //                                 ),
+            //                               ),
+            //                             ),
+            //                             SizedBox(height: 70),
+            //                           ],
+            //                         ),
+            //                       ),
+            //                     );
+            //                   },
+            //                 );
+            //               },
+            //               icon: Icon(Icons.edit),
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     );
+            //   },
+            // ),
           ),
         ],
       ),

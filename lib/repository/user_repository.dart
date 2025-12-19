@@ -20,6 +20,16 @@ class UserRepository {
     }
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>>? fetchUser() {
+    try {
+      Stream<QuerySnapshot<Map<String, dynamic>>>? collection =
+          FirebaseFirestore.instance.collection('employees').snapshots();
+      return collection;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<List<UserModel>> deleteUserFromList(String docId) async {
     try {
       final collectionToDelete = FirebaseFirestore.instance
